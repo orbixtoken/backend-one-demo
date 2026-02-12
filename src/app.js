@@ -6,11 +6,37 @@ dotenv.config();
 
 const app = express();
 
-// middlewares globais
-app.use(cors());
+/* ================================
+   CORS CONFIGURADO PARA PRODUÇÃO
+================================ */
+const allowedOrigins = [
+  'http://localhost:5173', // desenvolvimento
+  'http://localhost:3000',
+  'https://painel-one-nine.vercel.app',
+  'https://painel-one.vercel.app'
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // permite requisições sem origin (ex: Postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('CORS não permitido'));
+      }
+    },
+    credentials: true
+  })
+);
+
 app.use(express.json());
 
-// rotas
+/* ================================
+   ROTAS
+================================ */
 import authRoutes from './routes/auth.routes.js';
 import usuariosRoutes from './routes/usuarios.routes.js';
 import produtosRoutes from './routes/produtos.routes.js';
