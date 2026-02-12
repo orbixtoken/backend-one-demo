@@ -21,6 +21,7 @@ import financeiroRoutes from './routes/financeiro.routes.js';
 import clientesRoutes from './routes/clientes.routes.js';
 import orcamentosRoutes from './routes/orcamentos.routes.js';
 import empresaRoutes from './routes/empresa.routes.js';
+import financeiroExtraRoutes from './routes/financeiroExtra.routes.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
@@ -32,5 +33,6 @@ app.use('/api/financeiro', financeiroRoutes);
 app.use('/api/clientes', clientesRoutes);
 app.use('/api/orcamentos', orcamentosRoutes);
 app.use('/api/empresa', empresaRoutes);
+app.use('/api/financeiro-extra', financeiroExtraRoutes);
 
 export default app;
