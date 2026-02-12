@@ -67,6 +67,14 @@ export async function listarMovimentacoes({ tipo, periodo }) {
   return rows;
 }
 
+/* =====================================================
+   FUNÇÃO AUXILIAR PARA TRATAR DATAS
+===================================================== */
+function tratarData(valor) {
+  if (!valor || valor === '') return null;
+  return valor;
+}
+
 export async function criarMovimentacao(data) {
   const {
     tipo,
@@ -79,6 +87,9 @@ export async function criarMovimentacao(data) {
     observacao
   } = data;
 
+  const dataLanc = tratarData(data_lancamento);
+  const dataVenc = tratarData(data_vencimento);
+
   const { rows } = await pool.query(
     `INSERT INTO movimentacoes_financeiras
      (tipo, categoria_id, descricao, valor, data, data_vencimento, status, observacao)
@@ -89,8 +100,8 @@ export async function criarMovimentacao(data) {
       categoria_id,
       descricao,
       valor,
-      data_lancamento,
-      data_vencimento,
+      dataLanc,
+      dataVenc,
       status || 'pendente',
       observacao
     ]
@@ -111,6 +122,9 @@ export async function atualizarMovimentacao(id, data) {
     observacao
   } = data;
 
+  const dataLanc = tratarData(data_lancamento);
+  const dataVenc = tratarData(data_vencimento);
+
   const { rows } = await pool.query(
     `UPDATE movimentacoes_financeiras
      SET tipo=$1,
@@ -128,8 +142,8 @@ export async function atualizarMovimentacao(id, data) {
       categoria_id,
       descricao,
       valor,
-      data_lancamento,
-      data_vencimento,
+      dataLanc,
+      dataVenc,
       status,
       observacao,
       id
