@@ -111,47 +111,35 @@ export async function criarMovimentacao(data) {
 }
 
 export async function atualizarMovimentacao(id, data) {
-  const {
-    tipo,
-    categoria_id,
-    descricao,
-    valor,
-    data_lancamento,
-    data_vencimento,
-    status,
-    observacao
-  } = data;
-
-  const dataLanc = tratarData(data_lancamento);
-  const dataVenc = tratarData(data_vencimento);
-
   const { rows } = await pool.query(
     `UPDATE movimentacoes_financeiras
-     SET tipo=$1,
-         categoria_id=$2,
-         descricao=$3,
-         valor=$4,
-         data=$5,
-         data_vencimento=$6,
-         status=$7,
-         observacao=$8
-     WHERE id=$9
+     SET
+       tipo = COALESCE($1, tipo),
+       categoria_id = COALESCE($2, categoria_id),
+       descricao = COALESCE($3, descricao),
+       valor = COALESCE($4, valor),
+       data = COALESCE($5, data),
+       data_vencimento = COALESCE($6, data_vencimento),
+       status = COALESCE($7, status),
+       observacao = COALESCE($8, observacao)
+     WHERE id = $9
      RETURNING *`,
     [
-      tipo,
-      categoria_id,
-      descricao,
-      valor,
-      dataLanc,
-      dataVenc,
-      status,
-      observacao,
+      data.tipo,
+      data.categoria_id,
+      data.descricao,
+      data.valor,
+      data.data_lancamento,
+      data.data_vencimento,
+      data.status,
+      data.observacao,
       id
     ]
   );
 
   return rows[0];
 }
+
 
 export async function removerMovimentacao(id) {
   await pool.query(
