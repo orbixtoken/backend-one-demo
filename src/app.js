@@ -13,7 +13,8 @@ const allowedOrigins = [
   'http://localhost:5173', // desenvolvimento
   'http://localhost:3000',
   'https://painel-one-nine.vercel.app',
-  'https://painel-one.vercel.app'
+  'https://painel-one.vercel.app',
+  'https://muzel.vercel.app'
 ];
 
 app.use(
