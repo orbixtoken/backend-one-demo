@@ -1,23 +1,26 @@
-import express from 'express';
+import express from 'express'
 import {
   listarMovimentos,
   listarMovimentosPorOrdem,
-  resumoFinanceiro
-} from '../controllers/financeiroController.js';
-import { authMiddleware } from '../middlewares/authMiddleware.js';
+  resumoFinanceiro,
+  criarEntradaManual,
+  criarDespesaFinanceira
+} from '../controllers/financeiroController.js'
 
-const router = express.Router();
+import { authMiddleware } from '../middlewares/authMiddleware.js'
 
-// todas exigem autenticação
-router.use(authMiddleware);
+const router = express.Router()
 
-// lista tudo
-router.get('/', listarMovimentos);
+router.use(authMiddleware)
 
-// lista por ordem
-router.get('/ordem/:ordem_id', listarMovimentosPorOrdem);
+router.get('/', listarMovimentos)
 
-// resumo financeiro
-router.get('/resumo', resumoFinanceiro);
+router.get('/ordem/:ordem_id', listarMovimentosPorOrdem)
 
-export default router;
+router.get('/resumo', resumoFinanceiro)
+
+router.post('/entrada-manual', criarEntradaManual)
+
+router.post('/despesa', criarDespesaFinanceira)
+
+export default router
