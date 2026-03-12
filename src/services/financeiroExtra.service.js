@@ -1,81 +1,106 @@
-import pool from '../config/db.js';
+import pool from '../config/db.js'
 
 export async function listarCategorias() {
+
   const { rows } = await pool.query(
     `SELECT * FROM categorias_financeiras ORDER BY nome`
-  );
-  return rows;
+  )
+
+  return rows
+
 }
 
 export async function criarCategoria({ nome, tipo }) {
+
   const { rows } = await pool.query(
     `INSERT INTO categorias_financeiras (nome, tipo)
      VALUES ($1, $2)
      RETURNING *`,
     [nome, tipo]
-  );
-  return rows[0];
+  )
+
+  return rows[0]
+
 }
 
 export async function atualizarCategoria(id, { nome, tipo }) {
+
   const { rows } = await pool.query(
     `UPDATE categorias_financeiras
      SET nome = $1, tipo = $2
      WHERE id = $3
      RETURNING *`,
     [nome, tipo, id]
-  );
-  return rows[0];
+  )
+
+  return rows[0]
+
 }
 
 export async function removerCategoria(id) {
+
   await pool.query(
     `DELETE FROM categorias_financeiras WHERE id = $1`,
     [id]
-  );
+  )
+
 }
 
 export async function listarMovimentacoes({ tipo, periodo }) {
+
   let query = `
     SELECT m.*, c.nome AS categoria_nome
     FROM movimentacoes_financeiras m
     LEFT JOIN categorias_financeiras c
       ON c.id = m.categoria_id
     WHERE 1=1
-  `;
-  const params = [];
+  `
+
+  const params = []
 
   if (tipo) {
-    params.push(tipo);
-    query += ` AND m.tipo = $${params.length}`;
+
+    params.push(tipo)
+    query += ` AND m.tipo = $${params.length}`
+
   }
 
   if (periodo === 'semana') {
-    query += ` AND m.data >= CURRENT_DATE - INTERVAL '7 days'`;
+
+    query += ` AND m.data >= CURRENT_DATE - INTERVAL '7 days'`
+
   }
 
   if (periodo === 'mes') {
+
     query += `
       AND date_trunc('month', m.data) =
           date_trunc('month', CURRENT_DATE)
-    `;
+    `
+
   }
 
-  query += ` ORDER BY m.data DESC`;
+  query += ` ORDER BY m.data DESC`
 
-  const { rows } = await pool.query(query, params);
-  return rows;
+  const { rows } = await pool.query(query, params)
+
+  return rows
+
 }
 
 /* =====================================================
    FUNÇÃO AUXILIAR PARA TRATAR DATAS
 ===================================================== */
+
 function tratarData(valor) {
-  if (!valor || valor === '') return null;
-  return valor;
+
+  if (!valor || valor === '') return null
+  return valor
+
 }
 
 export async function criarMovimentacao(data) {
+
   const {
     tipo,
     categoria_id,
@@ -85,10 +110,10 @@ export async function criarMovimentacao(data) {
     data_vencimento,
     status,
     observacao
-  } = data;
+  } = data
 
-  const dataLanc = tratarData(data_lancamento);
-  const dataVenc = tratarData(data_vencimento);
+  const dataLanc = tratarData(data_lancamento)
+  const dataVenc = tratarData(data_vencimento)
 
   const { rows } = await pool.query(
     `INSERT INTO movimentacoes_financeiras
@@ -105,12 +130,14 @@ export async function criarMovimentacao(data) {
       status || 'pendente',
       observacao
     ]
-  );
+  )
 
-  return rows[0];
+  return rows[0]
+
 }
 
 export async function atualizarMovimentacao(id, data) {
+
   const { rows } = await pool.query(
     `UPDATE movimentacoes_financeiras
      SET
@@ -135,15 +162,17 @@ export async function atualizarMovimentacao(id, data) {
       data.observacao,
       id
     ]
-  );
+  )
 
-  return rows[0];
+  return rows[0]
+
 }
 
-
 export async function removerMovimentacao(id) {
+
   await pool.query(
     `DELETE FROM movimentacoes_financeiras WHERE id = $1`,
     [id]
-  );
+  )
+
 }

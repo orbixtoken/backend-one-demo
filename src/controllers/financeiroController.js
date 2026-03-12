@@ -6,6 +6,7 @@ import pool from '../config/db.js'
  * ============================
  */
 export const listarMovimentos = async (req, res) => {
+
   try {
 
     const { rows } = await pool.query(`
@@ -62,6 +63,7 @@ export const listarMovimentos = async (req, res) => {
     res.status(500).json({ message: 'Erro ao listar financeiro' })
 
   }
+
 }
 
 
@@ -131,7 +133,11 @@ export const criarEntradaManual = async (req, res) => {
       (ordem_id, tipo, valor, descricao, usuario_id)
       VALUES (NULL, 'entrada', $1, $2, $3)
       RETURNING *
-    `, [valor, descricao || 'MANUAL: entrada de caixa', usuario_id])
+    `, [
+      valor,
+      descricao || 'MANUAL: entrada de caixa',
+      usuario_id
+    ])
 
     res.status(201).json(rows[0])
 
@@ -166,7 +172,11 @@ export const criarDespesaFinanceira = async (req, res) => {
       (ordem_id, tipo, valor, descricao, usuario_id)
       VALUES (NULL, 'despesa', $1, $2, $3)
       RETURNING *
-    `, [valor, descricao || 'DESPESA', usuario_id])
+    `, [
+      valor,
+      descricao || 'DESPESA',
+      usuario_id
+    ])
 
     res.status(201).json(rows[0])
 
@@ -235,6 +245,36 @@ export const resumoFinanceiro = async (req, res) => {
 
     console.error('Erro ao gerar resumo financeiro:', err)
     res.status(500).json({ message: 'Erro ao gerar resumo financeiro' })
+
+  }
+
+}
+
+
+/**
+ * ============================
+ * RELATÓRIO FINANCEIRO
+ * ============================
+ */
+export const relatorioFinanceiro = async (req, res) => {
+
+  try {
+
+    const { rows } = await pool.query(`
+      SELECT
+        tipo,
+        SUM(valor) as total
+      FROM financeiro_movimentos
+      GROUP BY tipo
+      ORDER BY tipo
+    `)
+
+    res.json(rows)
+
+  } catch (err) {
+
+    console.error('Erro ao gerar relatório financeiro:', err)
+    res.status(500).json({ message: 'Erro ao gerar relatório financeiro' })
 
   }
 

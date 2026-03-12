@@ -53,7 +53,6 @@ export async function criarMovimentacao(req, res) {
 
     const { valor, descricao } = req.body
 
-    // registrar no financeiro principal
     if (valor) {
 
       await pool.query(`
@@ -62,7 +61,7 @@ export async function criarMovimentacao(req, res) {
         VALUES (NULL, 'despesa', $1, $2, NULL)
       `, [
         valor,
-        descricao || 'DESPESA'
+        `DESPESA_ID:${data.id} ${descricao || ''}`
       ])
 
     }
@@ -85,18 +84,69 @@ export async function criarMovimentacao(req, res) {
  */
 export async function atualizarMovimentacao(req, res) {
 
-  const data = await service.atualizarMovimentacao(
-    req.params.id,
-    req.body
-  )
+  try {
 
-  res.json(data)
+    const id = req.params.id
+
+    const data = await service.atualizarMovimentacao(
+      id,
+      req.body
+    )
+
+    const { valor, descricao } = req.body
+
+    if (valor || descricao) {
+
+      await pool.query(`
+        UPDATE financeiro_movimentos
+        SET
+          valor = COALESCE($1, valor),
+          descricao = COALESCE($2, descricao)
+        WHERE descricao LIKE $3
+      `, [
+        valor,
+        `DESPESA_ID:${id} ${descricao || ''}`,
+        `DESPESA_ID:${id}%`
+      ])
+
+    }
+
+    res.json(data)
+
+  } catch (err) {
+
+    console.error('Erro ao atualizar despesa:', err)
+    res.status(500).json({ message: 'Erro ao atualizar despesa' })
+
+  }
 
 }
 
+/**
+ * ============================
+ * REMOVER MOVIMENTAÇÃO
+ * ============================
+ */
 export async function removerMovimentacao(req, res) {
 
-  await service.removerMovimentacao(req.params.id)
-  res.json({ ok: true })
+  try {
+
+    const id = req.params.id
+
+    await pool.query(`
+      DELETE FROM financeiro_movimentos
+      WHERE descricao LIKE $1
+    `, [`DESPESA_ID:${id}%`])
+
+    await service.removerMovimentacao(id)
+
+    res.json({ ok: true })
+
+  } catch (err) {
+
+    console.error('Erro ao remover despesa:', err)
+    res.status(500).json({ message: 'Erro ao remover despesa' })
+
+  }
 
 }
