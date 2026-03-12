@@ -16,3 +16,4 @@ router.put('/:id', ctrl.atualizarMovimentacao);
 router.delete('/:id', ctrl.removerMovimentacao);
 
 export default router;
+//movimentos
