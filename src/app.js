@@ -49,7 +49,9 @@ import clientesRoutes from './routes/clientes.routes.js';
 import orcamentosRoutes from './routes/orcamentos.routes.js';
 import empresaRoutes from './routes/empresa.routes.js';
 import financeiroExtraRoutes from './routes/financeiroExtra.routes.js';
+import lancamentosFuturosRoutes from './routes/lancamentosFuturos.routes.js'
 
+app.use('/api/lancamentos-futuros', lancamentosFuturosRoutes)
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/produtos', produtosRoutes);
