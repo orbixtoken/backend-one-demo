@@ -253,23 +253,74 @@ export const resumoFinanceiro = async (req, res) => {
 
 /**
  * ============================
- * RELATÓRIO FINANCEIRO
+ * RELATÓRIO FINANCEIRO PROFISSIONAL
  * ============================
  */
 export const relatorioFinanceiro = async (req, res) => {
 
   try {
 
-    const { rows } = await pool.query(`
+    /* TOTAIS */
+    const totaisQuery = await pool.query(`
       SELECT
-        tipo,
-        SUM(valor) as total
+        SUM(CASE WHEN tipo='entrada' THEN valor ELSE 0 END) entradas,
+        SUM(CASE WHEN tipo='despesa' THEN valor ELSE 0 END) despesas
       FROM financeiro_movimentos
-      GROUP BY tipo
-      ORDER BY tipo
     `)
 
-    res.json(rows)
+    const entradas = Number(totaisQuery.rows[0].entradas || 0)
+    const despesas = Number(totaisQuery.rows[0].despesas || 0)
+    const resultado = entradas - despesas
+    const margem = entradas > 0 ? ((resultado / entradas) * 100) : 0
+
+
+    /* ENTRADAS POR ORIGEM */
+    const entradasOrigem = await pool.query(`
+      SELECT descricao, SUM(valor) total
+      FROM financeiro_movimentos
+      WHERE tipo='entrada'
+      GROUP BY descricao
+      ORDER BY total DESC
+    `)
+
+
+    /* DESPESAS POR ORIGEM */
+    const despesasOrigem = await pool.query(`
+      SELECT descricao, SUM(valor) total
+      FROM financeiro_movimentos
+      WHERE tipo='despesa'
+      GROUP BY descricao
+      ORDER BY total DESC
+    `)
+
+
+    /* LINHA DO TEMPO */
+    const linhaTempo = await pool.query(`
+      SELECT
+        criado_em,
+        tipo,
+        descricao,
+        valor
+      FROM financeiro_movimentos
+      ORDER BY criado_em DESC
+      LIMIT 100
+    `)
+
+
+    res.json({
+
+      totais: {
+        entradas,
+        despesas,
+        resultado,
+        margem
+      },
+
+      entradas_origem: entradasOrigem.rows,
+      despesas_origem: despesasOrigem.rows,
+      linha_tempo: linhaTempo.rows
+
+    })
 
   } catch (err) {
 
