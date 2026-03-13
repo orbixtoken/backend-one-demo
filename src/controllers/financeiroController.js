@@ -201,31 +201,10 @@ export const resumoFinanceiro = async (req, res) => {
 
     const { rows } = await pool.query(`
       SELECT
-
-        SUM(
-          CASE
-            WHEN fm.tipo = 'entrada'
-            AND (o.status IS NULL OR o.status <> 'cancelada')
-            THEN fm.valor ELSE 0
-          END
-        ) AS entradas,
-
-        SUM(
-          CASE
-            WHEN fm.tipo = 'despesa'
-            THEN fm.valor ELSE 0
-          END
-        ) AS despesas,
-
-        SUM(
-          CASE
-            WHEN fm.tipo = 'estorno'
-            THEN fm.valor ELSE 0
-          END
-        ) AS estornos
-
-      FROM financeiro_movimentos fm
-      LEFT JOIN ordens o ON o.id = fm.ordem_id
+        SUM(CASE WHEN tipo='entrada' THEN valor ELSE 0 END) entradas,
+        SUM(CASE WHEN tipo='despesa' THEN valor ELSE 0 END) despesas,
+        SUM(CASE WHEN tipo='estorno' THEN valor ELSE 0 END) estornos
+      FROM financeiro_movimentos
     `)
 
     const entradas = Number(rows[0].entradas || 0)
@@ -261,6 +240,7 @@ export const relatorioFinanceiro = async (req, res) => {
   try {
 
     /* TOTAIS */
+
     const totaisQuery = await pool.query(`
       SELECT
         SUM(CASE WHEN tipo='entrada' THEN valor ELSE 0 END) entradas,
@@ -270,31 +250,41 @@ export const relatorioFinanceiro = async (req, res) => {
 
     const entradas = Number(totaisQuery.rows[0].entradas || 0)
     const despesas = Number(totaisQuery.rows[0].despesas || 0)
+
     const resultado = entradas - despesas
     const margem = entradas > 0 ? ((resultado / entradas) * 100) : 0
 
 
-    /* ENTRADAS POR ORIGEM */
+    /* ENTRADAS DETALHADAS */
+
     const entradasOrigem = await pool.query(`
-      SELECT descricao, SUM(valor) total
+      SELECT
+        criado_em AS data,
+        descricao,
+        valor AS total
       FROM financeiro_movimentos
       WHERE tipo='entrada'
-      GROUP BY descricao
-      ORDER BY total DESC
+      ORDER BY criado_em DESC
+      LIMIT 100
     `)
 
 
-    /* DESPESAS POR ORIGEM */
+    /* DESPESAS DETALHADAS */
+
     const despesasOrigem = await pool.query(`
-      SELECT descricao, SUM(valor) total
+      SELECT
+        criado_em AS data,
+        descricao,
+        valor AS total
       FROM financeiro_movimentos
       WHERE tipo='despesa'
-      GROUP BY descricao
-      ORDER BY total DESC
+      ORDER BY criado_em DESC
+      LIMIT 100
     `)
 
 
     /* LINHA DO TEMPO */
+
     const linhaTempo = await pool.query(`
       SELECT
         criado_em,
@@ -303,7 +293,7 @@ export const relatorioFinanceiro = async (req, res) => {
         valor
       FROM financeiro_movimentos
       ORDER BY criado_em DESC
-      LIMIT 100
+      LIMIT 200
     `)
 
 
