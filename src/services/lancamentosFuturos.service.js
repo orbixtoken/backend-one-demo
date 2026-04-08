@@ -1,5 +1,6 @@
 import pool from '../config/db.js'
 
+
 /* =========================
    LISTAR LANÇAMENTOS
 ========================= */
@@ -76,6 +77,10 @@ export async function realizarLancamento(id) {
     throw new Error('Lançamento não encontrado')
   }
 
+  if (lancamento.status === 'realizado') {
+    throw new Error('Lançamento já foi realizado')
+  }
+
   /* inserir no fluxo financeiro */
 
   await pool.query(
@@ -99,6 +104,36 @@ export async function realizarLancamento(id) {
     SET status='realizado'
     WHERE id=$1
     `,
+    [id]
+  )
+
+}
+
+
+/* =========================
+   DELETAR LANÇAMENTO
+========================= */
+
+export async function deletarLancamento(id) {
+
+  const { rows } = await pool.query(
+    `SELECT * FROM lancamentos_futuros WHERE id=$1`,
+    [id]
+  )
+
+  const lancamento = rows[0]
+
+  if (!lancamento) {
+    throw new Error('Lançamento não encontrado')
+  }
+
+  /* REGRA DE NEGÓCIO IMPORTANTE */
+  if (lancamento.status === 'realizado') {
+    throw new Error('Não é possível excluir um lançamento já realizado')
+  }
+
+  await pool.query(
+    `DELETE FROM lancamentos_futuros WHERE id=$1`,
     [id]
   )
 
