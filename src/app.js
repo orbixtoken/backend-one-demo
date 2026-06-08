@@ -14,7 +14,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://painel-one-nine.vercel.app',
   'https://painel-one.vercel.app',
-  'https://muzel.vercel.app'
+  'https://oneprime.vercel.app'
 ]
 
 app.use(cors({
